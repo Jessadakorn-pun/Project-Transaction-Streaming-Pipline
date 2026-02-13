@@ -8,6 +8,7 @@ import argparse
 from typing import List
 from decimal import Decimal, ROUND_DOWN
 from db_utils import get_connection
+from config import CONFIG
 
 def random_money(min_val: Decimal, max_val: Decimal) -> Decimal:
     val = Decimal(str(random.uniform(float(min_val), float(max_val))))
@@ -34,9 +35,9 @@ def generate_customer(num_customer: int, faker: Faker, conn)-> list[int]:
                 
     except Exception as err:
         conn.rollback()
-        raise RuntimeError(f"Customer Data Inserted Fail: {err}")
+        raise RuntimeError(f"!! Customer Data Inserted Fail: {err} \n")
         
-    print("-- Insert Customers Complete \n")
+    print("     Process Insert Customers: < Complete > \n")
     return customers_ids
      
     
@@ -61,9 +62,9 @@ def generate_account(customer_ids:list[int], faker: Faker, account_per_customer:
           
     except Exception as err:
         conn.rollback()
-        raise RuntimeError(f"Account Data Inserted Fail: {err}")
+        raise RuntimeError(f"!! Account Data Inserted Fail: {err} \n")
         
-    print("-- Insert Accounts Complete \n")
+    print("     Process Insert Accounts: < Complete > \n")
     return account_ids
 
 def generate_transaction(account_ids: list[int], number_transactions: int, max_transaction_amount: float, conn)-> None:
@@ -88,32 +89,17 @@ def generate_transaction(account_ids: list[int], number_transactions: int, max_t
 
     except Exception as err:
         conn.rollback()
-        raise RuntimeError(f"Account Data Inserted Fail: {err}")
+        raise RuntimeError(f"!! Account Data Inserted Fail: {err} \n")
 
-    print("-- Insert Transaction Complete \n")
+    print("     Process Insert Transaction: < Complete >\n")
 
 def main():
-    
-    # data generator config
-    NUM_CUSTOMERS = 10
-    ACCOUNTS_PER_CUSTOMER = 2
-    NUM_TRANSACTIONS = 50
-    MAX_TXN_AMOUNT = 1000.00
-    CURRENCY = "USD"
-    
-    # Non-zero initial balances
-    INITIAL_BALANCE_MIN = Decimal("10.00")
-    INITIAL_BALANCE_MAX = Decimal("1000.00")
-    
-    # Loop config
-    DEFAULT_LOOP = True
-    SLEEP_SECONDS = 2
-    
+
     # CLI override (run once mode)
     parser = argparse.ArgumentParser(description="Run fake data generator")
     parser.add_argument("--once", action="store_true", help="Run a single iteration and exit")
     args = parser.parse_args()
-    LOOP = not args.once and DEFAULT_LOOP
+    LOOP = not args.once and CONFIG["DEFAULT_LOOP"]
     
     faker = Faker()
     conn = get_connection()
@@ -122,30 +108,31 @@ def main():
     try:
         
         interation = 0
+        print("\n ==================== Start Streaming Data ==================== \n")
         
         while True:
             
             interation += 1
             
-            print(f"- Start Interation: {interation} \n")
+            print(f"------ Start Interation: {interation} ------ \n")
             
-            customer_ids = generate_customer(NUM_CUSTOMERS, faker, conn)
-            account_ids = generate_account(customer_ids, faker, ACCOUNTS_PER_CUSTOMER, INITIAL_BALANCE_MIN, INITIAL_BALANCE_MAX, CURRENCY, conn)
-            generate_transaction(account_ids, NUM_TRANSACTIONS, MAX_TXN_AMOUNT, conn)
+            customer_ids = generate_customer(CONFIG["NUM_CUSTOMERS"], faker, conn)
+            account_ids = generate_account(customer_ids, faker, CONFIG["ACCOUNTS_PER_CUSTOMER"], CONFIG["INITIAL_BALANCE_MIN"], CONFIG["INITIAL_BALANCE_MAX"], CONFIG["CURRENCY"], conn)
+            generate_transaction(account_ids, CONFIG["NUM_TRANSACTIONS"], CONFIG["MAX_TXN_AMOUNT"], conn)
             
             conn.commit()
             
-            print(f"- End Interation: {interation} \n")
+            print(f"------ End Interation: {interation} ------ \n")
             
             if not LOOP:
                 break
             
-            time.sleep(SLEEP_SECONDS)
+            time.sleep(CONFIG["SLEEP_SECONDS"])
             
     except KeyboardInterrupt:
-        print("\n < Interrupted by user, Exiting Script >")
+        print("\n ==================== < Interrupted by user, Exiting Script > ==================== \n")
     except Exception as e:
-        print(f"ERROR OCCURRED: {e}")
+        print(f"!! ERROR OCCURRED: {e} \n")
 
         
     finally:

@@ -27,7 +27,48 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    
+  debezium:
+    image: debezium/connect:2.5
+    container_name: debezium-connect
+    depends_on:
+      kafka:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: 'kafka:9092'
+      GROUP_ID: '1'
 
+      CONFIG_STORAGE_TOPIC: 'connect-configs'
+      OFFSET_STORAGE_TOPIC: 'connect-offsets'
+      STATUS_STORAGE_TOPIC: 'connect-status'
+
+      KEY_CONVERTER_SCHEMAS_ENABLE: 'false'
+      VALUE_CONVERTER_SCHEMAS_ENABLE: 'false'
+      KEY_CONVERTER: 'org.apache.kafka.connect.json.JsonConverter'
+      VALUE_CONVERTER: 'org.apache.kafka.connect.json.JsonConverter'
+
+  debezium-init:
+    build: ./debezium-init
+    depends_on:
+      debezium:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      DEBEZIUM_URL: http://debezium:8083
+      CONNECTOR_NAME: postgres-connector
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+    command: python debezium_create_connector.py
+    profiles:
+      - cdc-init
 
   postgres:
     image: postgres:15
@@ -57,9 +98,14 @@ services:
     depends_on:
       - postgres
     command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/banking
+      FLYWAY_USER: ${POSTGRES_USER}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+      FLYWAY_SCHEMAS: public
+      FLYWAY_BASELINE_ON_MIGRATE: "true"
     volumes:
       - ./flyway/sql:/flyway/sql
-      - ./flyway/conf:/flyway/conf
 
   minio:
     image: minio/minio:latest

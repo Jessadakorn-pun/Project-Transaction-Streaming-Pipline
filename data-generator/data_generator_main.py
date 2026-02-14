@@ -121,7 +121,7 @@ def main():
             generate_transaction(account_ids, CONFIG["NUM_TRANSACTIONS"], CONFIG["MAX_TXN_AMOUNT"], conn)
             
             conn.commit()
-            
+            print(f"---- Generated {len(customer_ids)} customer, {len(account_ids)} accounts, {CONFIG["NUM_TRANSACTIONS"]} transactions ----")
             print(f"------ End Interation: {interation} ------ \n")
             
             if not LOOP:

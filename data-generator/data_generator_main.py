@@ -2,13 +2,20 @@ import os
 import sys
 import time
 import psycopg2
-from faker import Faker
+import logging
 import random
 import argparse
+from faker import Faker
 from typing import List
 from decimal import Decimal, ROUND_DOWN
 from db_utils import get_connection
 from config import CONFIG
+from common.logging import setup_logging
+
+# setting logger
+setup_logging("data-generator")
+logger = logging.getLogger(__name__)
+
 
 def random_money(min_val: Decimal, max_val: Decimal) -> Decimal:
     val = Decimal(str(random.uniform(float(min_val), float(max_val))))
@@ -35,9 +42,9 @@ def generate_customer(num_customer: int, faker: Faker, conn)-> list[int]:
                 
     except Exception as err:
         conn.rollback()
-        raise RuntimeError(f"!! Customer Data Inserted Fail: {err} \n")
+        logger.exception(f"!! Customer Data Inserted Fail: {err}")
         
-    print("     Process Insert Customers: < Complete > \n")
+    logger.info("Process Insert Customers: Complete")
     return customers_ids
      
     
@@ -62,9 +69,9 @@ def generate_account(customer_ids:list[int], faker: Faker, account_per_customer:
           
     except Exception as err:
         conn.rollback()
-        raise RuntimeError(f"!! Account Data Inserted Fail: {err} \n")
+        logger.exception(f"!! Account Data Inserted Fail: {err}")
         
-    print("     Process Insert Accounts: < Complete > \n")
+    logger.info("Process Insert Accounts:Complete")
     return account_ids
 
 def generate_transaction(account_ids: list[int], number_transactions: int, max_transaction_amount: float, conn)-> None:
@@ -89,40 +96,45 @@ def generate_transaction(account_ids: list[int], number_transactions: int, max_t
 
     except Exception as err:
         conn.rollback()
-        raise RuntimeError(f"!! Account Data Inserted Fail: {err} \n")
+        logger.exception(f"!! Account Data Inserted Fail: {err}")
 
-    print("     Process Insert Transaction: < Complete >\n")
+    logger.info("Process Insert Transaction: Complete")
 
 def main():
-
+    
     # CLI override (run once mode)
     parser = argparse.ArgumentParser(description="Run fake data generator")
     parser.add_argument("--once", action="store_true", help="Run a single iteration and exit")
     args = parser.parse_args()
     LOOP = not args.once and CONFIG["DEFAULT_LOOP"]
     
+    # initiate data-generator
     faker = Faker()
+    
+    # setting connection
     conn = get_connection()
     conn.autocommit = False
     
     try:
         
-        interation = 0
-        print("\n ==================== Start Streaming Data ==================== \n")
+        iteration = 0
+        logger.info("Start Streaming Data")
         
         while True:
             
-            interation += 1
+            iteration += 1
             
-            print(f"------ Start Interation: {interation} ------ \n")
+            logger.info(f"Start iteration %s", iteration)
             
             customer_ids = generate_customer(CONFIG["NUM_CUSTOMERS"], faker, conn)
             account_ids = generate_account(customer_ids, faker, CONFIG["ACCOUNTS_PER_CUSTOMER"], CONFIG["INITIAL_BALANCE_MIN"], CONFIG["INITIAL_BALANCE_MAX"], CONFIG["CURRENCY"], conn)
             generate_transaction(account_ids, CONFIG["NUM_TRANSACTIONS"], CONFIG["MAX_TXN_AMOUNT"], conn)
             
             conn.commit()
-            print(f"---- Generated {len(customer_ids)} customer, {len(account_ids)} accounts, {CONFIG["NUM_TRANSACTIONS"]} transactions ----")
-            print(f"------ End Interation: {interation} ------ \n")
+            
+            logger.info(f"Generated data - iteration: {iteration}, customers: {len(customer_ids)}, accounts: {len(account_ids)}, transactions: {CONFIG['NUM_TRANSACTIONS']}")
+            
+            logger.info("End iteration %s", iteration)
             
             if not LOOP:
                 break
@@ -130,9 +142,9 @@ def main():
             time.sleep(CONFIG["SLEEP_SECONDS"])
             
     except KeyboardInterrupt:
-        print("\n ==================== < Interrupted by user, Exiting Script > ==================== \n")
+        logger.info("Interrupted by user, exiting")
     except Exception as e:
-        print(f"!! ERROR OCCURRED: {e} \n")
+        logger.exception("Unhandled error occurred")
 
         
     finally:

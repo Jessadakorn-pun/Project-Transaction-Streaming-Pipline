@@ -2,7 +2,7 @@ docker-compose up airflow-init -d
 docker-compose up -d
 
 ## Start connection to debezium
-docker compose run --rm debezium-init
+docker-compose run --rm debezium-init
 docker-compose --profile cdc-init up
 
 

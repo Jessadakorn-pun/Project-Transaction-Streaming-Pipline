@@ -1,5 +1,2 @@
 .env
-./docker/minio
-./docker/logs
-./docker/plugins
-./docker/postgres
+docker/**

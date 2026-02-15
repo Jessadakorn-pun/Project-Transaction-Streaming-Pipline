@@ -18,3 +18,6 @@ docker-compose --profile datagen up --once
 
 # docker-compose build datagen
 docker-compose exec -it postgres psql -U postgres -d banking
+## clear mounted volumn
+rm -rf docker/postgres/data/*
+rm -rf docker/minio/data/*

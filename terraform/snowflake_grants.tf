@@ -65,11 +65,6 @@ resource "snowflake_grant_privileges_to_account_role" "airflow_database_usage" {
   }
 }
 
-resource "snowflake_grant_account_role" "grant_airflow_role_to_user" {
-  role_name = snowflake_account_role.airflow_role.name
-  user_name = snowflake_user.airflow_user.name
-}
-
 resource "snowflake_grant_privileges_to_account_role" "airflow_raw_schema_usage" {
   account_role_name = snowflake_account_role.airflow_role.name
   privileges        = ["USAGE"]
@@ -101,3 +96,56 @@ resource "snowflake_grant_privileges_to_account_role" "airflow_raw_tables" {
     object_name = "${snowflake_database.banking.name}.${snowflake_schema.raw.name}.${each.key}"
   }
 }
+
+resource "snowflake_grant_privileges_to_account_role" "dbt_raw_all_tables_select" {
+  account_role_name = snowflake_account_role.dbt_role.name
+  privileges        = ["SELECT"]
+
+  on_schema_object {
+    all {
+      object_type_plural = "TABLES"
+      in_schema          = "${snowflake_database.banking.name}.${snowflake_schema.raw.name}"
+    }
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "dbt_raw_future_tables_select" {
+  account_role_name = snowflake_account_role.dbt_role.name
+  privileges        = ["SELECT"]
+
+  on_schema_object {
+    future {
+      object_type_plural = "TABLES"
+      in_schema          = "${snowflake_database.banking.name}.${snowflake_schema.raw.name}"
+    }
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "airflow_raw_create_table" {
+  account_role_name = snowflake_account_role.airflow_role.name
+  privileges        = ["CREATE TABLE"]
+
+  on_schema {
+    schema_name = "${snowflake_database.banking.name}.${snowflake_schema.raw.name}"
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "airflow_raw_schema_create_stage" {
+  account_role_name = snowflake_account_role.airflow_role.name
+  privileges        = ["CREATE STAGE"]
+
+  on_schema {
+    schema_name = "${snowflake_database.banking.name}.${snowflake_schema.raw.name}"
+  }
+}
+
+resource "snowflake_grant_privileges_to_account_role" "dbt_raw_schema_usage" {
+  account_role_name = snowflake_account_role.dbt_role.name
+  privileges        = ["USAGE"]
+
+  on_schema {
+    schema_name = "${snowflake_database.banking.name}.${snowflake_schema.raw.name}"
+  }
+}
+
+

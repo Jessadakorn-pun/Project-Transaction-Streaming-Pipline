@@ -20,7 +20,9 @@ docker-compose --profile datagen up
 docker-compose run --rm datagen --once
 docker-compose --profile datagen up --once
 
-
+# build dbt image
+docker build -t banking-dbt:latest dbt/
+docker build --no-cache -t banking-dbt:latest dbt/
 
 # docker-compose build datagen
 docker-compose exec -it postgres psql -U postgres -d banking

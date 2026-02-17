@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  models:
+  - name: customers
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: email
+        tests: [not_null]
+
+  - name: transactions
+    columns:
+      - name: amount
+        tests:
+          - not_null
+  
+  - name: accounts
+    columns:
+      columns:
+      - name: account_id
+        tests: [not_null, unique]

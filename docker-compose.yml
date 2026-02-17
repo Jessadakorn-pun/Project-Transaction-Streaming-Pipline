@@ -170,13 +170,17 @@ services:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres:5432/${AIRFLOW_DB_NAME}
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_DBT_USER=${SNOWFLAKE_DBT_USER}
+      - SNOWFLAKE_DBT_PASSWORD=${SNOWFLAKE_DBT_PASSWORD}
+      - SNOWFLAKE_DBT_ROLE=${SNOWFLAKE_DBT_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./common:/opt/airflow/dags/common
       - ./docker/logs:/opt/airflow/logs
       - ./docker/plugins:/opt/airflow/plugins
-      - ./dbt:/opt/airflow/banking_dbt
-      - ./dbt/.dbt:/home/airflow/.dbt
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8080:8080"
     command: webserver
@@ -192,17 +196,22 @@ services:
           condition: service_started
       airflow-postgres:
         condition: service_healthy
+    
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW_FERNET_KEY}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres:5432/${AIRFLOW_DB_NAME}
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_DBT_USER=${SNOWFLAKE_DBT_USER}
+      - SNOWFLAKE_DBT_PASSWORD=${SNOWFLAKE_DBT_PASSWORD}
+      - SNOWFLAKE_DBT_ROLE=${SNOWFLAKE_DBT_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./common:/opt/airflow/dags/common
       - ./docker/logs:/opt/airflow/logs
       - ./docker/plugins:/opt/airflow/plugins
-      - ./dbt:/opt/airflow/banking_dbt
-      - ./dbt/.dbt:/home/airflow/.dbt
+      - /var/run/docker.sock:/var/run/docker.sock
     command: scheduler
 
 

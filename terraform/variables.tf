@@ -28,3 +28,7 @@ variable airflow_user_password {
   type      = string
   sensitive = true
 }
+variable dbt_user_password {
+  type      = string
+  sensitive = true
+}

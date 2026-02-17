@@ -15,3 +15,10 @@ resource "snowflake_schema" "mart" {
     name = "MART"
     comment = "Business data marts"
 }
+
+resource "snowflake_stage" "airflow_stage" {
+  name     = "AIRFLOW_STAGE"
+  database = snowflake_database.banking.name
+  schema   = snowflake_schema.raw.name
+  comment  = "Stage for Airflow raw ingestion"
+}

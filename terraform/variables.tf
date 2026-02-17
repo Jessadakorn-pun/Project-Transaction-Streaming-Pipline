@@ -17,9 +17,14 @@ variable "snowflake_password" {
 
 variable "snowflake_role" {
   type    = string
-  default = "SECURITYADMIN"
+  default = "ACCOUNTADMIN"
 }
 
 variable "snowflake_organization_name" {
   type = string
+}
+
+variable airflow_user_password {
+  type      = string
+  sensitive = true
 }

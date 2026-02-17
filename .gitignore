@@ -1,2 +1,15 @@
 .env
-docker/**
+airflow_variables.json
+
+
+docker/logs/**
+docker/minio/**
+docker/postgres/**
+docker/plugins/**
+
+terraform/terraform.tfvars
+terraform/.terraform/**
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate
+terraform/terraform.tfstate

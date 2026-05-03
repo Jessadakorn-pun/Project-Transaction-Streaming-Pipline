@@ -1,6 +1,6 @@
 # Transaction Streaming Pipeline
 
-A production-grade, real-time streaming data pipeline for banking transactions. The pipeline captures every database change from PostgreSQL using CDC (Change Data Capture), streams events through Kafka, stores them as Parquet files in a data lake (MinIO), and loads them into Snowflake for analytics — with dbt handling multi-layer transformations and Airflow orchestrating the batch loads.
+A real-time streaming data pipeline for banking transactions. The pipeline captures every database change from PostgreSQL using CDC (Change Data Capture), streams events through Kafka, stores them as Parquet files in a data lake (MinIO), and loads them into Snowflake for analytics — with dbt handling multi-layer transformations and Airflow orchestrating the batch loads.
 
 ---
 
